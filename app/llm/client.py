@@ -1,8 +1,10 @@
 # app/llm/client.py
+from functools import lru_cache
 import yaml
 from openai import AsyncOpenAI
 from app.config import get_settings
 
+@lru_cache(maxsize=1)
 def load_yaml_config():
     with open("config.yaml", "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -16,17 +18,16 @@ async def get_llm_response(prompt_system: str, prompt_user: str, history: list =
     if provider_name == "openrouter":
         base_url = config["providers"]["openrouter"]["base_url"]
         api_key = settings.OPENROUTER_API_KEY
-        model = config.get("active_model") or config["providers"]["openrouter"]["model"]
     elif provider_name == "deepseek":
         base_url = config["providers"]["deepseek"]["base_url"]
         api_key = settings.DEEPSEEK_API_KEY
-        model = config["providers"]["deepseek"]["model"]
     elif provider_name == "openai":
         base_url = config["providers"]["openai"]["base_url"]
         api_key = settings.OPENAI_API_KEY
-        model = config["providers"]["openai"]["model"]
     else:
         raise ValueError(f"Proveedor no soportado: {provider_name}")
+    
+    model = config.get("active_model") or config["providers"][provider_name]["model"]
     
     client = AsyncOpenAI(api_key=api_key, base_url=base_url)
     
