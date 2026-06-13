@@ -1,0 +1,15 @@
+active_provider: "openrouter"
+active_model: "meta-llama/llama-3-8b-instruct:free"
+providers:
+  openrouter:
+    base_url: "https://openrouter.ai/api/v1"
+    model: "meta-llama/llama-3-8b-instruct:free"
+  deepseek:
+    base_url: "https://api.deepseek.com/v1"
+    model: "deepseek-chat"
+  openai:
+    base_url: "https://api.openai.com/v1"
+    model: "gpt-4o-mini"
+bot_name: "NaturBot"
+max_history_messages: 10
+temperature: 0.7
