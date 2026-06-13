@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str = "default_or_key"
     DEEPSEEK_API_KEY: str = "default_ds_key"
     OPENAI_API_KEY: str = "default_oa_key"
+    DATABASE_URL: str = "sqlite:///./instagram_bot.db"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
