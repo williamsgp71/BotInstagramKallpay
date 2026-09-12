@@ -9,6 +9,10 @@ def load_yaml_config():
     with open("config.yaml", "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+@lru_cache(maxsize=None)
+def _get_client(base_url: str, api_key: str) -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=api_key, base_url=base_url)
+
 async def get_llm_response(prompt_system: str, prompt_user: str, history: list = None) -> str:
     config = load_yaml_config()
     settings = get_settings()
@@ -28,9 +32,9 @@ async def get_llm_response(prompt_system: str, prompt_user: str, history: list =
         raise ValueError(f"Proveedor no soportado: {provider_name}")
     
     model = config.get("active_model") or config["providers"][provider_name]["model"]
-    
-    client = AsyncOpenAI(api_key=api_key, base_url=base_url)
-    
+
+    client = _get_client(base_url, api_key)
+
     messages = [{"role": "system", "content": prompt_system}]
     if history:
         for msg in history:

@@ -34,9 +34,13 @@ async def receive_webhook(request: Request, background_tasks: BackgroundTasks, d
     body = await request.body()
     settings = get_settings()
     
-    # Validar firma de Meta si está presente (seguridad adicional)
-    signature = request.headers.get("X-Hub-Signature-256")
-    if signature and settings.META_APP_SECRET != "default_app_secret":
+    # Validar firma de Meta cuando el secreto está configurado (seguridad adicional)
+    if settings.META_APP_SECRET != "default_app_secret":
+        signature = request.headers.get("X-Hub-Signature-256")
+        if not signature:
+            logger.error("Falta la firma del webhook.")
+            raise HTTPException(status_code=403, detail="Missing signature")
+
         sha256_sig = signature.replace("sha256=", "")
         expected_sig = hmac.new(
             settings.META_APP_SECRET.encode("utf-8"),
@@ -55,9 +59,13 @@ async def receive_webhook(request: Request, background_tasks: BackgroundTasks, d
             # Mensajes Privados (DMs)
             if "messaging" in entry:
                 for messaging_event in entry["messaging"]:
+                    message = messaging_event.get("message")
+                    if not message:
+                        # Ignorar eventos que no son mensajes (read receipts, reacciones, postbacks, echoes, etc.)
+                        continue
                     sender_id = messaging_event["sender"]["id"]
-                    message_id = messaging_event["message"]["mid"]
-                    text = messaging_event["message"].get("text")
+                    message_id = message["mid"]
+                    text = message.get("text")
                     if text:
                         background_tasks.add_task(
                             process_incoming_dm, sender_id, message_id, text, db
